@@ -15,4 +15,4 @@ Here are some ideas to get you started:
 - ⚡ Fun fact: ...
 -->
 
-![snake gif](https://raw.githubusercontent.com/USERNAME/USERNAME/output/github-contribution-grid-snake.svg)
+![snake gif](https://raw.githubusercontent.com/tatarchch/tatarchch/output/github-contribution-grid-snake.svg)
