@@ -19,7 +19,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Update commits count in README
+            - name: Update contributions count in README
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_USERNAME: tatarchch
@@ -43,7 +43,9 @@ jobs:
           query($login: String!, $from: DateTime!, $to: DateTime!) {
             user(login: $login) {
               contributionsCollection(from: $from, to: $to) {
-                totalCommitContributions
+                contributionCalendar {
+                  totalContributions
+                }
               }
             }
           }
@@ -74,14 +76,14 @@ jobs:
           if "errors" in result:
               raise RuntimeError(result["errors"])
 
-          commits = result["data"]["user"]["contributionsCollection"]["totalCommitContributions"]
+          contributions = result["data"]["user"]["contributionsCollection"]["contributionCalendar"]["totalContributions"]
 
           readme_path = "README.md"
 
           with open(readme_path, "r", encoding="utf-8") as file:
               readme = file.read()
 
-          new_block = f"<!-- COMMITS:START -->\n**Commits in {year}:** {commits}\n<!-- COMMITS:END -->"
+          new_block = f"<!-- COMMITS:START -->\n**Contributions in {year}:** {contributions}\n<!-- COMMITS:END -->"
 
           updated = re.sub(
               r"<!-- COMMITS:START -->.*?<!-- COMMITS:END -->",
@@ -90,14 +92,14 @@ jobs:
               flags=re.DOTALL,
           )
 
-          if updated == readme:
-              print("README already up to date.")
-          else:
+          if updated != readme:
               with open(readme_path, "w", encoding="utf-8") as file:
                   file.write(updated)
-              print(f"Updated README: Commits in {year}: {commits}")
+              print(f"Updated README: Contributions in {year}: {contributions}")
+          else:
+              print("README already up to date.")
           PY
-
+          
       - name: Commit README changes
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
