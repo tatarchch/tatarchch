@@ -20,8 +20,7 @@ jobs:
         with:
           github_user_name: tatarchch
           outputs: |
-            dist/github-snake.svg?color_snake=#ffffff&color_dots=#161b22,#0e4429,#006d32,#26a641,#39d353
-            dist/github-snake-dark.svg?color_snake=#ffffff&color_dots=#161b22,#0e4429,#006d32,#26a641,#39d353
+            dist/github-contribution-grid-snake.svg?color_snake=#ffffff&color_dots=#161b22,#0e4429,#006d32,#26a641,#39d353
 
       - name: Push snake to output branch
         uses: crazy-max/ghaction-github-pages@v4
