@@ -1,0 +1,105 @@
+name: Update Commits Count
+
+on:
+  schedule:
+    - cron: "0 1 * * *"
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+jobs:
+  update:
+    permissions:
+      contents: write
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Update commits count in README
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_USERNAME: tatarchch
+        run: |
+          python <<'PY'
+          import json
+          import os
+          import re
+          import urllib.request
+          from datetime import datetime, timezone
+
+          username = os.environ["GITHUB_USERNAME"]
+          token = os.environ["GITHUB_TOKEN"]
+
+          now = datetime.now(timezone.utc)
+          year = now.year
+          from_date = f"{year}-01-01T00:00:00Z"
+          to_date = now.strftime("%Y-%m-%dT%H:%M:%SZ")
+
+          query = """
+          query($login: String!, $from: DateTime!, $to: DateTime!) {
+            user(login: $login) {
+              contributionsCollection(from: $from, to: $to) {
+                totalCommitContributions
+              }
+            }
+          }
+          """
+
+          payload = json.dumps({
+              "query": query,
+              "variables": {
+                  "login": username,
+                  "from": from_date,
+                  "to": to_date,
+              },
+          }).encode("utf-8")
+
+          request = urllib.request.Request(
+              "https://api.github.com/graphql",
+              data=payload,
+              headers={
+                  "Authorization": f"Bearer {token}",
+                  "Content-Type": "application/json",
+              },
+              method="POST",
+          )
+
+          with urllib.request.urlopen(request) as response:
+              result = json.loads(response.read().decode("utf-8"))
+
+          if "errors" in result:
+              raise RuntimeError(result["errors"])
+
+          commits = result["data"]["user"]["contributionsCollection"]["totalCommitContributions"]
+
+          readme_path = "README.md"
+
+          with open(readme_path, "r", encoding="utf-8") as file:
+              readme = file.read()
+
+          new_block = f"<!-- COMMITS:START -->\n**Commits in {year}:** {commits}\n<!-- COMMITS:END -->"
+
+          updated = re.sub(
+              r"<!-- COMMITS:START -->.*?<!-- COMMITS:END -->",
+              new_block,
+              readme,
+              flags=re.DOTALL,
+          )
+
+          if updated == readme:
+              print("README already up to date.")
+          else:
+              with open(readme_path, "w", encoding="utf-8") as file:
+                  file.write(updated)
+              print(f"Updated README: Commits in {year}: {commits}")
+          PY
+
+      - name: Commit README changes
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: Update commits count in README
+          file_pattern: README.md
