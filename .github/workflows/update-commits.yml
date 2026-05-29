@@ -1,4 +1,4 @@
-name: Update Commits Count
+name: Update Contributions Count
 
 on:
   schedule:
@@ -19,7 +19,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-            - name: Update contributions count in README
+      - name: Update contributions count in README
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_USERNAME: tatarchch
@@ -95,13 +95,14 @@ jobs:
           if updated != readme:
               with open(readme_path, "w", encoding="utf-8") as file:
                   file.write(updated)
+
               print(f"Updated README: Contributions in {year}: {contributions}")
           else:
               print("README already up to date.")
           PY
-          
+
       - name: Commit README changes
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          commit_message: Update commits count in README
+          commit_message: Update contributions count in README
           file_pattern: README.md
